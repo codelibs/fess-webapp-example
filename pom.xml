@@ -4,7 +4,7 @@
 	<groupId>org.codelibs.fess</groupId>
 	<artifactId>fess-webapp-example</artifactId>
 	<packaging>jar</packaging>
-	<name>Sample webapp Plugin</name>
+	<name>Example Webapp Plugin</name>
 	<version>13.9.0-SNAPSHOT</version>
 	<url>https://fess.codelibs.org/</url>
 	<inceptionYear>2009</inceptionYear>
@@ -23,9 +23,9 @@
 		<url>https://github.com/codelibs/fess/issues</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:git:git@github.com:codelibs/fess-webapp-plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:codelibs/fess-webapp-plugin.git</developerConnection>
-		<url>https://github.com/codelibs/fess-webapp-plugin</url>
+		<connection>scm:git:git@github.com:codelibs/fess-webapp-example.git</connection>
+		<developerConnection>scm:git:git@github.com:codelibs/fess-webapp-example.git</developerConnection>
+		<url>https://github.com/codelibs/fess-webapp-example</url>
 	</scm>
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
