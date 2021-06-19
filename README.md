@@ -1,4 +1,5 @@
-Example WebApp Plugin for Fess [![Build Status](https://travis-ci.org/codelibs/fess-webapp-example.svg?branch=master)](https://travis-ci.org/codelibs/fess-webapp-example)
+Example WebApp Plugin for Fess
+[![Java CI with Maven](https://github.com/codelibs/fess-webapp-example/actions/workflows/maven.yml/badge.svg)](https://github.com/codelibs/fess-webapp-example/actions/workflows/maven.yml)
 ==========================
 
 ## Overview
