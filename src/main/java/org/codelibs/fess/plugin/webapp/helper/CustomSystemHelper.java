@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 CodeLibs Project and the Others.
+ * Copyright 2012-2022 CodeLibs Project and the Others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public class CustomSystemHelper extends SystemHelper {
     protected void parseProjectProperties() {
         try {
             super.parseProjectProperties();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.warn("Cannot parse project.properties.", e);
         }
         System.setProperty("fess.webapp.plugin", "true");
