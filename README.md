@@ -8,7 +8,7 @@ This is a sample plugin for Fess webapp.
 
 ## Download
 
-See [Maven Repository](http://central.maven.org/maven2/org/codelibs/fess/fess-webapp-example/).
+See [Maven Repository](https://repo1.maven.org/maven2/org/codelibs/fess/fess-webapp-example/).
 
 ## Installation
 
