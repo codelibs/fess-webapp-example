@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.plugin.webapp.helper;
 
+import java.nio.file.Path;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.helper.SystemHelper;
@@ -24,9 +26,9 @@ public class CustomSystemHelper extends SystemHelper {
     private static final Logger logger = LogManager.getLogger(CustomSystemHelper.class);
 
     @Override
-    protected void parseProjectProperties() {
+    protected void parseProjectProperties(final Path propPath) {
         try {
-            super.parseProjectProperties();
+            super.parseProjectProperties(propPath);
         } catch (final Exception e) {
             logger.warn("Cannot parse project.properties.", e);
         }
