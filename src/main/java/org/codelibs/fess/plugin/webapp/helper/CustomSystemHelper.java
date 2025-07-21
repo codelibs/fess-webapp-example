@@ -21,7 +21,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.helper.SystemHelper;
 
+/**
+ * Custom system helper for Fess webapp plugin that extends the default SystemHelper.
+ * This helper enables webapp plugin functionality by setting the appropriate system property
+ * and provides enhanced error handling for project properties parsing.
+ */
 public class CustomSystemHelper extends SystemHelper {
+
+    /**
+     * Default constructor for CustomSystemHelper.
+     * Initializes the custom system helper with webapp plugin capabilities.
+     */
+    public CustomSystemHelper() {
+        super();
+    }
 
     private static final Logger logger = LogManager.getLogger(CustomSystemHelper.class);
 
