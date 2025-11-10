@@ -209,4 +209,207 @@ public class CustomSystemHelperTest extends LastaFluteTestCase {
             assertTrue("All threads should see the property set", result);
         }
     }
+
+    public void test_constructor_initialization() {
+        // Given & When
+        CustomSystemHelper helper = new CustomSystemHelper();
+
+        // Then
+        assertNotNull("Helper instance should not be null", helper);
+        assertTrue("Helper should be instance of SystemHelper", helper instanceof org.codelibs.fess.helper.SystemHelper);
+        assertTrue("Helper should be instance of CustomSystemHelper", helper instanceof CustomSystemHelper);
+    }
+
+    public void test_parseProjectProperties_overwritesExistingProperty() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        System.setProperty("fess.webapp.plugin", "false");
+        assertEquals("false", System.getProperty("fess.webapp.plugin"));
+
+        // When
+        helper.parseProjectProperties(null);
+
+        // Then
+        assertEquals("Property should be overwritten to true", "true", System.getProperty("fess.webapp.plugin"));
+    }
+
+    public void test_parseProjectProperties_withAbsolutePath() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        Path absolutePath = Paths.get("/tmp/test/project.properties").toAbsolutePath();
+
+        // When
+        helper.parseProjectProperties(absolutePath);
+
+        // Then
+        assertEquals("true", System.getProperty("fess.webapp.plugin"));
+    }
+
+    public void test_parseProjectProperties_withRelativePath() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        Path relativePath = Paths.get("./project.properties");
+
+        // When
+        helper.parseProjectProperties(relativePath);
+
+        // Then
+        assertEquals("true", System.getProperty("fess.webapp.plugin"));
+    }
+
+    public void test_parseProjectProperties_withSpecialCharactersInPath() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        Path pathWithSpaces = Paths.get("path with spaces/project.properties");
+        Path pathWithUnicode = Paths.get("パス/project.properties");
+
+        // When
+        helper.parseProjectProperties(pathWithSpaces);
+        String resultAfterSpaces = System.getProperty("fess.webapp.plugin");
+
+        helper.parseProjectProperties(pathWithUnicode);
+        String resultAfterUnicode = System.getProperty("fess.webapp.plugin");
+
+        // Then
+        assertEquals("true", resultAfterSpaces);
+        assertEquals("true", resultAfterUnicode);
+    }
+
+    public void test_multipleInstances_independence() {
+        // Given
+        CustomSystemHelper helper1 = new CustomSystemHelper();
+        CustomSystemHelper helper2 = new CustomSystemHelper();
+        CustomSystemHelper helper3 = new CustomSystemHelper();
+
+        // When
+        helper1.parseProjectProperties(Paths.get("path1"));
+        helper2.parseProjectProperties(Paths.get("path2"));
+        helper3.parseProjectProperties(null);
+
+        // Then
+        assertEquals("true", System.getProperty("fess.webapp.plugin"));
+        assertNotSame("Instances should be different objects", helper1, helper2);
+        assertNotSame("Instances should be different objects", helper2, helper3);
+    }
+
+    public void test_parseProjectProperties_consistencyAcrossInstances() {
+        // Given
+        System.clearProperty("fess.webapp.plugin");
+        CustomSystemHelper helper1 = new CustomSystemHelper();
+        CustomSystemHelper helper2 = new CustomSystemHelper();
+
+        // When
+        helper1.parseProjectProperties(Paths.get("test1"));
+        String valueAfterHelper1 = System.getProperty("fess.webapp.plugin");
+
+        helper2.parseProjectProperties(Paths.get("test2"));
+        String valueAfterHelper2 = System.getProperty("fess.webapp.plugin");
+
+        // Then
+        assertEquals("true", valueAfterHelper1);
+        assertEquals("true", valueAfterHelper2);
+        assertEquals("Values should be consistent", valueAfterHelper1, valueAfterHelper2);
+    }
+
+    public void test_parseProjectProperties_withDifferentPathTypes() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        Path[] testPaths = {
+                null,
+                Paths.get(""),
+                Paths.get("relative/path"),
+                Paths.get("/absolute/path"),
+                Paths.get("../parent/path"),
+                Paths.get("./current/path")
+        };
+
+        // When & Then
+        for (Path testPath : testPaths) {
+            System.clearProperty("fess.webapp.plugin");
+            helper.parseProjectProperties(testPath);
+            assertEquals("Property should be set for all path types", "true", System.getProperty("fess.webapp.plugin"));
+        }
+    }
+
+    public void test_parseProjectProperties_propertyValueIsExactlyTrue() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        System.clearProperty("fess.webapp.plugin");
+
+        // When
+        helper.parseProjectProperties(null);
+        String propertyValue = System.getProperty("fess.webapp.plugin");
+
+        // Then
+        assertNotNull("Property value should not be null", propertyValue);
+        assertEquals("Property value should be exactly 'true'", "true", propertyValue);
+        assertTrue("Property value should equal 'true' using equals", "true".equals(propertyValue));
+        assertFalse("Property value should not be 'false'", "false".equals(propertyValue));
+        assertFalse("Property value should not be empty", propertyValue.isEmpty());
+    }
+
+    public void test_parseProjectProperties_idempotency() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        System.clearProperty("fess.webapp.plugin");
+
+        // When
+        helper.parseProjectProperties(null);
+        String firstValue = System.getProperty("fess.webapp.plugin");
+
+        helper.parseProjectProperties(null);
+        String secondValue = System.getProperty("fess.webapp.plugin");
+
+        helper.parseProjectProperties(Paths.get("different/path"));
+        String thirdValue = System.getProperty("fess.webapp.plugin");
+
+        // Then
+        assertEquals("true", firstValue);
+        assertEquals("true", secondValue);
+        assertEquals("true", thirdValue);
+        assertEquals("Multiple calls should produce same result (idempotent)", firstValue, secondValue);
+        assertEquals("Multiple calls should produce same result (idempotent)", secondValue, thirdValue);
+    }
+
+    public void test_parseProjectProperties_doesNotThrowException() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        Path[] problematicPaths = {
+                null,
+                Paths.get(""),
+                Paths.get("/"),
+                Paths.get("non/existent/path"),
+                Paths.get("\\invalid\\path"),
+                Paths.get("special!@#$%/path")
+        };
+
+        // When & Then
+        for (Path testPath : problematicPaths) {
+            try {
+                helper.parseProjectProperties(testPath);
+                // No exception should be thrown
+                assertTrue("Method should complete without exception", true);
+            } catch (Exception e) {
+                fail("Should not throw exception for path: " + testPath + ", but got: " + e.getMessage());
+            }
+        }
+    }
+
+    public void test_parseProjectProperties_stressTest() {
+        // Given
+        CustomSystemHelper helper = new CustomSystemHelper();
+        final int iterations = 100;
+
+        // When
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < iterations; i++) {
+            helper.parseProjectProperties(Paths.get("test/path/" + i));
+        }
+        long endTime = System.currentTimeMillis();
+
+        // Then
+        assertEquals("Property should still be set after stress test", "true", System.getProperty("fess.webapp.plugin"));
+        long duration = endTime - startTime;
+        assertTrue("Stress test should complete in reasonable time (< 5 seconds)", duration < 5000);
+    }
 }
