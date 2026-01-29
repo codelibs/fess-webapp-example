@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.plugin.webapp.helper;
 
+import org.junit.jupiter.api.TestInfo;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -25,9 +27,9 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.codelibs.fess.mylasta.direction.FessConfig;
 import org.codelibs.fess.util.ComponentUtil;
-import org.dbflute.utflute.lastaflute.LastaFluteTestCase;
+import org.codelibs.fess.webapp.example.UnitWebappTestCase;
 
-public class CustomSystemHelperTest extends LastaFluteTestCase {
+public class CustomSystemHelperTest extends UnitWebappTestCase {
 
     @Override
     protected String prepareConfigFile() {
@@ -40,7 +42,7 @@ public class CustomSystemHelperTest extends LastaFluteTestCase {
     }
 
     @Override
-    public void setUp() throws Exception {
+    public void setUp(TestInfo testInfo) throws Exception {
         ComponentUtil.setFessConfig(new FessConfig.SimpleImpl() {
             private static final long serialVersionUID = 1L;
 
@@ -60,13 +62,13 @@ public class CustomSystemHelperTest extends LastaFluteTestCase {
             }
 
         });
-        super.setUp();
+        super.setUp(testInfo);
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown(TestInfo testInfo) throws Exception {
         ComponentUtil.setFessConfig(null);
-        super.tearDown();
+        super.tearDown(testInfo);
     }
 
     public void test_checkProperty() {
@@ -314,14 +316,8 @@ public class CustomSystemHelperTest extends LastaFluteTestCase {
     public void test_parseProjectProperties_withDifferentPathTypes() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
-        Path[] testPaths = {
-                null,
-                Paths.get(""),
-                Paths.get("relative/path"),
-                Paths.get("/absolute/path"),
-                Paths.get("../parent/path"),
-                Paths.get("./current/path")
-        };
+        Path[] testPaths = { null, Paths.get(""), Paths.get("relative/path"), Paths.get("/absolute/path"), Paths.get("../parent/path"),
+                Paths.get("./current/path") };
 
         // When & Then
         for (Path testPath : testPaths) {
@@ -374,14 +370,8 @@ public class CustomSystemHelperTest extends LastaFluteTestCase {
     public void test_parseProjectProperties_doesNotThrowException() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
-        Path[] problematicPaths = {
-                null,
-                Paths.get(""),
-                Paths.get("/"),
-                Paths.get("non/existent/path"),
-                Paths.get("\\invalid\\path"),
-                Paths.get("special!@#$%/path")
-        };
+        Path[] problematicPaths = { null, Paths.get(""), Paths.get("/"), Paths.get("non/existent/path"), Paths.get("\\invalid\\path"),
+                Paths.get("special!@#$%/path") };
 
         // When & Then
         for (Path testPath : problematicPaths) {
