@@ -4,76 +4,122 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.codelibs.fess/fess-webapp-example/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.codelibs.fess/fess-webapp-example)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A demonstration WebApp plugin for [Fess](https://fess.codelibs.org/), showing how to create custom JSP design templates and extend the search engine's web interface functionality.
+A minimal, copy-from template for building a [Fess](https://fess.codelibs.org/) **WebApp plugin**.
 
-## Overview
+It shows the one thing every WebApp plugin needs to get right: how to **add** your
+own components to Fess's dependency-injection (DI) container using the additive
+`app++.xml` merge convention, **without overriding or copying any Fess core
+component**.
 
-This plugin demonstrates how to extend Fess's web application layer by providing custom JSP templates for various UI components. It serves as a practical example for developers who want to create their own custom web interfaces for Fess search applications.
+## What this plugin does
 
-### Key Features
+- Registers a single new component, `exampleHelper`
+  ([`ExampleHelper`](src/main/java/org/codelibs/fess/webapp/example/helper/ExampleHelper.java)),
+  via [`app++.xml`](src/main/resources/app++.xml).
+- `ExampleHelper` has one small, real method, `getPluginLabel()`, which reads the
+  running Fess version from the core `SystemHelper` (looked up through
+  `ComponentUtil`) and returns a label such as `fess-webapp-example (Fess 15.7.0)`.
 
-- **Custom JSP Templates**: Provides custom design templates for search pages, navigation, and error handling
-- **System Helper Extension**: Extends Fess's `SystemHelper` class with enhanced error handling and logging
-- **Component Registration**: Demonstrates dependency injection configuration using LastaDi framework
-- **Comprehensive UI Coverage**: Includes templates for search interface, user management, and error pages
+That is deliberately tiny. The value of this repository is the *wiring*, which you
+can copy and replace with your own helper, action, or service.
 
-## Supported UI Components
+## How the additive merge works
 
-The plugin registers custom JSP templates for the following components:
+Fess assembles its DI container from many small LastaDi XML files. A plugin can
+contribute to that container by shipping XML files on the classpath whose names
+follow LastaDi's merge conventions:
 
-### Search Interface
-- `index.jsp` - Main search page
-- `search.jsp` - Search interface
-- `searchResults.jsp` - Search results display
-- `searchNoResult.jsp` - No results found page
-- `searchOptions.jsp` - Search options
-- `advance.jsp` - Advanced search
-- `help.jsp` - Help page
+| File name pattern | Effect |
+| --- | --- |
+| `app++.xml` | **Adds** components to the `app` namespace (merge). Used here. |
+| `fess_query+<name>.xml` | **Overrides** the core component named `<name>`. |
+| `fess_api++.xml` | **Adds** components to the `fess_api` namespace (merge). |
 
-### Navigation & Layout
-- `header.jsp` - Page header
-- `footer.jsp` - Page footer
+The `++` suffix means "merge into this namespace". Because `exampleHelper` does
+not exist in Fess core, nothing is overridden — the component is simply added.
+This is the recommended way to extend Fess: add new components rather than
+replacing core singletons.
 
-### Error Handling
-- `error/error.jsp` - General error page
-- `error/notFound.jsp` - 404 Not Found
-- `error/system.jsp` - System error
-- `error/redirect.jsp` - Redirect error
-- `error/badRequest.jsp` - 400 Bad Request
+```xml
+<!-- src/main/resources/app++.xml -->
+<components>
+    <component name="exampleHelper"
+        class="org.codelibs.fess.webapp.example.helper.ExampleHelper" />
+</components>
+```
 
-### User Interface
-- `login/index.jsp` - Login page
-- `profile/index.jsp` - User profile page
+## The `Fess-WebAppJar` manifest
 
-### Cache Display
-- `cache.hbs` - Cache display template (Handlebars)
+A WebApp plugin JAR must declare itself with the manifest entry
+`Fess-WebAppJar: true` so Fess loads its classes and DI XML into the web
+application. This is set in [`pom.xml`](pom.xml) via the `maven-jar-plugin`:
+
+```xml
+<plugin>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+        <archive>
+            <manifestEntries>
+                <Fess-WebAppJar>true</Fess-WebAppJar>
+            </manifestEntries>
+        </archive>
+    </configuration>
+</plugin>
+```
 
 ## Requirements
 
 - Java 21 or later
-- Maven 3.6 or later
-- Fess 15.0 or later
+- Maven 3.8 or later
+- Fess 15.7 or later
+
+## Project structure
+
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── org/codelibs/fess/webapp/example/helper/
+│   │       └── ExampleHelper.java
+│   └── resources/
+│       └── app++.xml
+└── test/
+    ├── java/
+    │   └── org/codelibs/fess/webapp/example/
+    │       ├── UnitWebappTestCase.java
+    │       └── helper/
+    │           └── ExampleHelperTest.java
+    └── resources/
+        └── test_app.xml
+```
+
+All code lives under the single package root `org.codelibs.fess.webapp.example`.
+
+## Building and testing
+
+```bash
+# Compile
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Build the plugin JAR (lands in target/)
+mvn clean package
+
+# Format code and license headers before committing
+mvn formatter:format
+mvn license:format
+```
+
+The test ([`ExampleHelperTest`](src/test/java/org/codelibs/fess/webapp/example/helper/ExampleHelperTest.java))
+loads [`test_app.xml`](src/test/resources/test_app.xml), which `<include>`s the
+plugin's `app++.xml`, then retrieves `exampleHelper` from the DI container exactly
+as Fess does at runtime. That proves the `app++.xml` wiring is correct.
 
 ## Installation
 
-### From Maven Repository
-
-The plugin is available on Maven Central:
-
-```xml
-<dependency>
-    <groupId>org.codelibs.fess</groupId>
-    <artifactId>fess-webapp-example</artifactId>
-    <version>15.0.0</version>
-</dependency>
-```
-
-### Manual Installation
-
-1. Download the plugin JAR from [Maven Repository](https://repo1.maven.org/maven2/org/codelibs/fess/fess-webapp-example/)
-2. Follow the [Plugin Installation Guide](https://fess.codelibs.org/admin/plugin-guide.html) in the Fess documentation
-
-### Building from Source
+### Building from source
 
 ```bash
 git clone https://github.com/codelibs/fess-webapp-example.git
@@ -81,85 +127,21 @@ cd fess-webapp-example
 mvn clean package
 ```
 
-The compiled JAR will be available in the `target/` directory.
+### Installing into Fess
 
-## Development
+Place the built JAR in Fess's plugin directory, or install it from the admin UI.
+See the [Plugin Installation Guide](https://fess.codelibs.org/15.7/admin/plugin-guide.html).
 
-### Project Structure
+## How to extend it
 
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── org/codelibs/fess/plugin/webapp/helper/
-│   │       └── CustomSystemHelper.java
-│   └── resources/
-│       └── fess+systemHelper.xml
-└── test/
-    ├── java/
-    │   └── org/codelibs/fess/plugin/webapp/helper/
-    │       └── CustomSystemHelperTest.java
-    └── resources/
-        └── test_app.xml
-```
-
-### Core Components
-
-#### CustomSystemHelper
-
-The main plugin class that extends Fess's `SystemHelper`:
-
-- **Location**: `src/main/java/org/codelibs/fess/plugin/webapp/helper/CustomSystemHelper.java`
-- **Function**: Overrides `parseProjectProperties()` with enhanced error handling
-- **System Property**: Sets `fess.webapp.plugin=true` during initialization
-
-#### Configuration
-
-- **DI Configuration**: `src/main/resources/fess+systemHelper.xml`
-- **Component Registration**: Maps UI component names to JSP template files
-- **Test Configuration**: `src/test/resources/test_app.xml`
-
-### Building and Testing
-
-```bash
-# Compile the project
-mvn clean compile
-
-# Run tests
-mvn test
-
-# Create package
-mvn clean package
-
-# Format code
-mvn formatter:format
-
-# Check license headers
-mvn license:check
-
-# Generate documentation
-mvn javadoc:javadoc
-```
-
-### Creating Custom Templates
-
-1. Extend the `CustomSystemHelper` class or create your own helper
-2. Register your JSP templates in the DI configuration file
-3. Ensure your plugin JAR includes the manifest entry: `Fess-WebAppJar=true`
-
-## Configuration
-
-The plugin uses LastaDi dependency injection framework. Template mappings are configured in `fess+systemHelper.xml`:
-
-```xml
-<component name="systemHelper" class="org.codelibs.fess.plugin.webapp.helper.CustomSystemHelper">
-    <postConstruct name="addDesignJspFileName">
-        <arg>"index"</arg>
-        <arg>"index.jsp"</arg>
-    </postConstruct>
-    <!-- Additional template mappings... -->
-</component>
-```
+1. Add your own class (a helper, action, service, etc.) under
+   `org.codelibs.fess.webapp.example`.
+2. Register it in `app++.xml` with a unique component name that does **not**
+   collide with a Fess core component (unless you intend to override one).
+3. Use `@PostConstruct` for initialization and `ComponentUtil.getXxx()` /
+   `@Resource` to reuse core components instead of copying them.
+4. Add a test that retrieves your component from the DI container and asserts its
+   behavior.
 
 ## Contributing
 
@@ -169,25 +151,11 @@ The plugin uses LastaDi dependency injection framework. Template mappings are co
 4. Push to the branch (`git push origin feature/your-feature`)
 5. Create a Pull Request
 
-### Development Guidelines
-
-- Follow the existing code style and conventions
-- Add appropriate test cases for new functionality
-- Ensure all tests pass before submitting
-- Update documentation as needed
-
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## Support
-
-- **Documentation**: [Fess Documentation](https://fess.codelibs.org/)
-- **Plugin Guide**: [Plugin Installation Guide](https://fess.codelibs.org/admin/plugin-guide.html)
-- **Issues**: [GitHub Issues](https://github.com/codelibs/fess-webapp-example/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codelibs/fess-webapp-example/discussions)
-
-## Related Projects
+## Related projects
 
 - [Fess](https://github.com/codelibs/fess) - The main Fess search server
 - [LastaFlute](https://github.com/lastaflute/lastaflute) - Web framework used by Fess
