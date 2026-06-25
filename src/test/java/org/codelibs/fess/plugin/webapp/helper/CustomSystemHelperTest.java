@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.plugin.webapp.helper;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import java.nio.file.Path;
@@ -71,10 +72,12 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         super.tearDown(testInfo);
     }
 
+    @Test
     public void test_checkProperty() {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withValidPath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -87,6 +90,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withNullPath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -98,6 +102,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withNonExistentPath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -110,6 +115,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_systemPropertyAlwaysSet() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -123,6 +129,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_multipleCalls() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -137,6 +144,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_inheritance_extendsSystemHelper() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -145,6 +153,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertTrue("CustomSystemHelper should extend SystemHelper", helper instanceof org.codelibs.fess.helper.SystemHelper);
     }
 
+    @Test
     public void test_loggerConfiguration() {
         // Given
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
@@ -155,6 +164,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertNotNull("Logger should be configured", loggerConfig);
     }
 
+    @Test
     public void test_parseProjectProperties_withEmptyPath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -167,6 +177,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_propertyPersistence() {
         // Given
         CustomSystemHelper helper1 = new CustomSystemHelper();
@@ -185,6 +196,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("Property should remain consistent", propertyAfterFirst, propertyAfterSecond);
     }
 
+    @Test
     public void test_parseProjectProperties_threadSafety() throws InterruptedException {
         // Given
         final CustomSystemHelper helper = new CustomSystemHelper();
@@ -212,6 +224,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         }
     }
 
+    @Test
     public void test_constructor_initialization() {
         // Given & When
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -222,6 +235,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertTrue("Helper should be instance of CustomSystemHelper", helper instanceof CustomSystemHelper);
     }
 
+    @Test
     public void test_parseProjectProperties_overwritesExistingProperty() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -235,6 +249,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("Property should be overwritten to true", "true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withAbsolutePath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -247,6 +262,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withRelativePath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -259,6 +275,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", System.getProperty("fess.webapp.plugin"));
     }
 
+    @Test
     public void test_parseProjectProperties_withSpecialCharactersInPath() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -277,6 +294,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("true", resultAfterUnicode);
     }
 
+    @Test
     public void test_multipleInstances_independence() {
         // Given
         CustomSystemHelper helper1 = new CustomSystemHelper();
@@ -294,6 +312,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertNotSame("Instances should be different objects", helper2, helper3);
     }
 
+    @Test
     public void test_parseProjectProperties_consistencyAcrossInstances() {
         // Given
         System.clearProperty("fess.webapp.plugin");
@@ -313,6 +332,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("Values should be consistent", valueAfterHelper1, valueAfterHelper2);
     }
 
+    @Test
     public void test_parseProjectProperties_withDifferentPathTypes() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -327,6 +347,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         }
     }
 
+    @Test
     public void test_parseProjectProperties_propertyValueIsExactlyTrue() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -344,6 +365,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertFalse("Property value should not be empty", propertyValue.isEmpty());
     }
 
+    @Test
     public void test_parseProjectProperties_idempotency() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -367,6 +389,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         assertEquals("Multiple calls should produce same result (idempotent)", secondValue, thirdValue);
     }
 
+    @Test
     public void test_parseProjectProperties_doesNotThrowException() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
@@ -385,6 +408,7 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
         }
     }
 
+    @Test
     public void test_parseProjectProperties_stressTest() {
         // Given
         CustomSystemHelper helper = new CustomSystemHelper();
