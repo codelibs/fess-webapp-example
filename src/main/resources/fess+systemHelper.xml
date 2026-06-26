@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN"
+	"http://dbflute.org/meta/lastadi10.dtd">
+<!--
+	OVERRIDE convention (single "+"):
+
+	A classpath resource named "<baseDicon>+<componentName>.xml" tells LastaDi to
+	REPLACE the component named <componentName> that "<baseDicon>.xml" declares.
+	Fess declares "systemHelper" in its "fess.xml", so this file
+	(fess+systemHelper.xml) replaces the core systemHelper with the subclass
+	below. Contrast this with the additive "app++.xml" in this plugin, which ADDS
+	a brand-new component instead of replacing an existing one.
+
+	IMPORTANT: a redefine replaces the ENTIRE component definition, so this file
+	must repeat every postConstruct that Fess core performs on systemHelper -
+	namely the design-JSP name mappings below. They are copied verbatim from Fess
+	core's fess.xml (the referenced *.jsp files are provided by Fess itself, not
+	by this plugin). If you override a core component, keep this list in sync with
+	each Fess release; otherwise design pages (e.g. chat / busy / newpassword)
+	will stop resolving. That maintenance cost is the main reason to prefer adding
+	a new component (app++.xml) whenever you do not truly need to replace core
+	behavior.
+-->
+<components>
+	<component name="systemHelper"
+		class="org.codelibs.fess.webapp.example.helper.CustomSystemHelper">
+		<postConstruct name="addDesignJspFileName">
+			<arg>"index"</arg>
+			<arg>"index.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"header"</arg>
+			<arg>"header.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"footer"</arg>
+			<arg>"footer.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"search"</arg>
+			<arg>"search.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"searchResults"</arg>
+			<arg>"searchResults.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"searchNoResult"</arg>
+			<arg>"searchNoResult.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"searchOptions"</arg>
+			<arg>"searchOptions.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"advance"</arg>
+			<arg>"advance.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"help"</arg>
+			<arg>"help.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"error"</arg>
+			<arg>"error/error.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"errorNotFound"</arg>
+			<arg>"error/notFound.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"errorSystem"</arg>
+			<arg>"error/system.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"errorBadRequest"</arg>
+			<arg>"error/badRequest.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"errorBusy"</arg>
+			<arg>"error/busy.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"cache"</arg>
+			<arg>"cache.hbs"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"login"</arg>
+			<arg>"login/index.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"newpassword"</arg>
+			<arg>"login/newpassword.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"profile"</arg>
+			<arg>"profile/index.jsp"</arg>
+		</postConstruct>
+		<postConstruct name="addDesignJspFileName">
+			<arg>"chat"</arg>
+			<arg>"chat/chat.jsp"</arg>
+		</postConstruct>
+	</component>
+</components>

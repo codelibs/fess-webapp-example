@@ -50,12 +50,12 @@ public class ExampleHelperTest extends UnitWebappTestCase {
         final SystemHelper systemHelper = new SystemHelper() {
             @Override
             public String getProductVersion() {
-                return "15.7.0";
+                return "15.8";
             }
         };
         ComponentUtil.register(systemHelper, "systemHelper");
 
         final ExampleHelper exampleHelper = ComponentUtil.getComponent("exampleHelper");
-        assertEquals("label combines plugin name and Fess version", "fess-webapp-example (Fess 15.7.0)", exampleHelper.getPluginLabel());
+        assertEquals("label combines plugin name and Fess version", "fess-webapp-example (Fess 15.8)", exampleHelper.getPluginLabel());
     }
 }

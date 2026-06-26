@@ -72,7 +72,7 @@ public class ExampleHelper {
      * via {@link ComponentUtil}, demonstrating how a plugin can reuse core
      * components without overriding them.
      *
-     * @return a label such as {@code "fess-webapp-example (Fess 15.7.0)"}
+     * @return a label such as {@code "fess-webapp-example (Fess 15.8)"}
      */
     public String getPluginLabel() {
         final SystemHelper systemHelper = ComponentUtil.getSystemHelper();
