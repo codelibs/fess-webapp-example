@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN"
+	"http://dbflute.org/meta/lastadi10.dtd">
+<!--
+	The "app++.xml" file name is the LastaDi additive-merge convention: the "++"
+	suffix tells Fess to MERGE these definitions into the existing "app" DI
+	namespace instead of replacing it. This lets a plugin ADD new components
+	without copying or overriding any of Fess's core components.
+
+	Below we register a single new component, "exampleHelper". It does not exist
+	in Fess core, so nothing is overridden. To extend Fess, add your own
+	components here the same way.
+-->
+<components>
+	<component name="exampleHelper"
+		class="org.codelibs.fess.webapp.example.helper.ExampleHelper">
+	</component>
+</components>

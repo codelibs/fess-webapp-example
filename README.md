@@ -4,76 +4,175 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.codelibs.fess/fess-webapp-example/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.codelibs.fess/fess-webapp-example)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A demonstration WebApp plugin for [Fess](https://fess.codelibs.org/), showing how to create custom JSP design templates and extend the search engine's web interface functionality.
+A minimal, copy-from template for building a [Fess](https://fess.codelibs.org/) **WebApp plugin**.
 
-## Overview
+It shows the two ways a WebApp plugin extends Fess's dependency-injection (DI)
+container, side by side:
 
-This plugin demonstrates how to extend Fess's web application layer by providing custom JSP templates for various UI components. It serves as a practical example for developers who want to create their own custom web interfaces for Fess search applications.
+1. **Add a new component** &mdash; the recommended default. Register your own
+   helper/action/service without touching Fess core.
+2. **Override a core component** &mdash; replace a built-in Fess component with
+   your own subclass when you genuinely need to change core behavior.
 
-### Key Features
+Both are tiny on purpose. The value of this repository is the *wiring* and the
+*conventions*, which you can copy and replace with your own classes.
 
-- **Custom JSP Templates**: Provides custom design templates for search pages, navigation, and error handling
-- **System Helper Extension**: Extends Fess's `SystemHelper` class with enhanced error handling and logging
-- **Component Registration**: Demonstrates dependency injection configuration using LastaDi framework
-- **Comprehensive UI Coverage**: Includes templates for search interface, user management, and error pages
+## How Fess assembles plugin DI
 
-## Supported UI Components
+Fess builds its DI container from many small LastaDi XML files. A plugin
+contributes by shipping XML files on the classpath whose **file names** follow
+LastaDi's redefine conventions:
 
-The plugin registers custom JSP templates for the following components:
+| File name pattern | Effect |
+| --- | --- |
+| `<baseDicon>++.xml` (e.g. `app++.xml`) | **Adds** new components into the container built from `<baseDicon>.xml` (additive merge). Nothing is overridden. |
+| `<baseDicon>+<componentName>.xml` (e.g. `fess+systemHelper.xml`) | **Replaces** the single component named `<componentName>` that `<baseDicon>.xml` declares (per-component redefine). |
 
-### Search Interface
-- `index.jsp` - Main search page
-- `search.jsp` - Search interface
-- `searchResults.jsp` - Search results display
-- `searchNoResult.jsp` - No results found page
-- `searchOptions.jsp` - Search options
-- `advance.jsp` - Advanced search
-- `help.jsp` - Help page
+Two things are easy to get wrong:
 
-### Navigation & Layout
-- `header.jsp` - Page header
-- `footer.jsp` - Page footer
+- The **prefix must be the dicon that declares the component.** `systemHelper` is
+  declared in Fess core's `fess.xml`, so the override file must be
+  `fess+systemHelper.xml` &mdash; not `app+systemHelper.xml`.
+- A redefine (`+`) replaces the **entire** component definition, including its
+  `postConstruct` calls. Registering the same component `name` twice in one
+  container is an *ambiguity error*, not an override &mdash; the `+` convention is
+  exactly what lets you replace a core singleton cleanly.
 
-### Error Handling
-- `error/error.jsp` - General error page
-- `error/notFound.jsp` - 404 Not Found
-- `error/system.jsp` - System error
-- `error/redirect.jsp` - Redirect error
-- `error/badRequest.jsp` - 400 Bad Request
+## Pattern 1: Add a new component (`app++.xml` + `ExampleHelper`)
 
-### User Interface
-- `login/index.jsp` - Login page
-- `profile/index.jsp` - User profile page
+[`app++.xml`](src/main/resources/app++.xml) merges a single new component,
+`exampleHelper`, into the `app` container. Because `exampleHelper` does not exist
+in Fess core, nothing is overridden.
 
-### Cache Display
-- `cache.hbs` - Cache display template (Handlebars)
+```xml
+<!-- src/main/resources/app++.xml -->
+<components>
+    <component name="exampleHelper"
+        class="org.codelibs.fess.webapp.example.helper.ExampleHelper" />
+</components>
+```
+
+[`ExampleHelper`](src/main/java/org/codelibs/fess/webapp/example/helper/ExampleHelper.java)
+has one small, real method, `getPluginLabel()`, which reads the running Fess
+version from the core `SystemHelper` (looked up through `ComponentUtil`) and
+returns a label such as `fess-webapp-example (Fess 15.8)`. It follows the
+standard Fess idioms: `@PostConstruct` for initialization and `ComponentUtil` to
+*reuse* core components instead of copying or overriding them.
+
+This is the pattern you should reach for first.
+
+## Pattern 2: Override a core component (`fess+systemHelper.xml` + `CustomSystemHelper`)
+
+[`CustomSystemHelper`](src/main/java/org/codelibs/fess/webapp/example/helper/CustomSystemHelper.java)
+extends Fess's `SystemHelper` and overrides `parseProjectProperties()` to tolerate
+a parse failure and set a `fess.webapp.plugin` marker property.
+[`fess+systemHelper.xml`](src/main/resources/fess+systemHelper.xml) re-registers
+`systemHelper` with this subclass:
+
+```xml
+<!-- src/main/resources/fess+systemHelper.xml -->
+<component name="systemHelper"
+    class="org.codelibs.fess.webapp.example.helper.CustomSystemHelper">
+    <postConstruct name="addDesignJspFileName">
+        <arg>"index"</arg>
+        <arg>"index.jsp"</arg>
+    </postConstruct>
+    <!-- ...the rest of Fess core's design-JSP mappings... -->
+</component>
+```
+
+> **Maintenance cost (read before overriding):** because a redefine replaces the
+> *whole* definition, the override must repeat **every** `postConstruct` the core
+> `systemHelper` performs &mdash; the full set of design-JSP name mappings. These
+> are copied verbatim from Fess core's `fess.xml`, and the referenced `*.jsp`
+> files are provided by Fess itself (this plugin ships none of them). You must
+> keep that list in sync with each Fess release, or design pages (e.g.
+> `chat` / `busy` / `newpassword`) will stop resolving. This is exactly why
+> Pattern 1 is preferred whenever you do not truly need to replace core behavior.
+
+## The `Fess-WebAppJar` manifest
+
+A WebApp plugin JAR must declare itself with the manifest entry
+`Fess-WebAppJar: true` so Fess mounts its classes and DI XML into the web
+application's classloader. This is set in [`pom.xml`](pom.xml) via the
+`maven-jar-plugin`:
+
+```xml
+<plugin>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+        <archive>
+            <manifestEntries>
+                <Fess-WebAppJar>true</Fess-WebAppJar>
+            </manifestEntries>
+        </archive>
+    </configuration>
+</plugin>
+```
 
 ## Requirements
 
 - Java 21 or later
-- Maven 3.6 or later
-- Fess 15.0 or later
+- Maven 3.8 or later
+- Fess 15.8 or later
+
+## Project structure
+
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── org/codelibs/fess/webapp/example/helper/
+│   │       ├── ExampleHelper.java          # Pattern 1: a brand-new component
+│   │       └── CustomSystemHelper.java      # Pattern 2: a core-component override
+│   └── resources/
+│       ├── app++.xml                        # Pattern 1: additive merge
+│       └── fess+systemHelper.xml            # Pattern 2: per-component redefine
+└── test/
+    ├── java/
+    │   └── org/codelibs/fess/webapp/example/
+    │       ├── UnitWebappTestCase.java
+    │       └── helper/
+    │           ├── ExampleHelperTest.java
+    │           └── CustomSystemHelperTest.java
+    └── resources/
+        ├── test_app.xml                     # loads app++.xml for Pattern 1
+        └── test_systemhelper.xml            # loads fess+systemHelper.xml for Pattern 2
+```
+
+All code lives under the single package root `org.codelibs.fess.webapp.example`.
+
+## Building and testing
+
+```bash
+# Compile
+mvn clean compile
+
+# Run tests
+mvn test
+
+# Build the plugin JAR (lands in target/)
+mvn clean package
+
+# Format code and license headers before committing
+mvn formatter:format
+mvn license:format
+```
+
+Each test retrieves its component from the DI container exactly as Fess does at
+runtime, which proves the wiring is correct:
+
+- [`ExampleHelperTest`](src/test/java/org/codelibs/fess/webapp/example/helper/ExampleHelperTest.java)
+  loads [`test_app.xml`](src/test/resources/test_app.xml) (which `<include>`s
+  `app++.xml`) and looks up `exampleHelper`.
+- [`CustomSystemHelperTest`](src/test/java/org/codelibs/fess/webapp/example/helper/CustomSystemHelperTest.java)
+  loads [`test_systemhelper.xml`](src/test/resources/test_systemhelper.xml) (which
+  `<include>`s `fess+systemHelper.xml`) and verifies `systemHelper` resolves to the
+  overriding `CustomSystemHelper`.
 
 ## Installation
 
-### From Maven Repository
-
-The plugin is available on Maven Central:
-
-```xml
-<dependency>
-    <groupId>org.codelibs.fess</groupId>
-    <artifactId>fess-webapp-example</artifactId>
-    <version>15.0.0</version>
-</dependency>
-```
-
-### Manual Installation
-
-1. Download the plugin JAR from [Maven Repository](https://repo1.maven.org/maven2/org/codelibs/fess/fess-webapp-example/)
-2. Follow the [Plugin Installation Guide](https://fess.codelibs.org/admin/plugin-guide.html) in the Fess documentation
-
-### Building from Source
+### Building from source
 
 ```bash
 git clone https://github.com/codelibs/fess-webapp-example.git
@@ -81,85 +180,22 @@ cd fess-webapp-example
 mvn clean package
 ```
 
-The compiled JAR will be available in the `target/` directory.
+### Installing into Fess
 
-## Development
+Place the built JAR in Fess's plugin directory, or install it from the admin UI.
+See the [Plugin Installation Guide](https://fess.codelibs.org/15.8/admin/plugin-guide.html).
 
-### Project Structure
+## How to extend it
 
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── org/codelibs/fess/plugin/webapp/helper/
-│   │       └── CustomSystemHelper.java
-│   └── resources/
-│       └── fess+systemHelper.xml
-└── test/
-    ├── java/
-    │   └── org/codelibs/fess/plugin/webapp/helper/
-    │       └── CustomSystemHelperTest.java
-    └── resources/
-        └── test_app.xml
-```
-
-### Core Components
-
-#### CustomSystemHelper
-
-The main plugin class that extends Fess's `SystemHelper`:
-
-- **Location**: `src/main/java/org/codelibs/fess/plugin/webapp/helper/CustomSystemHelper.java`
-- **Function**: Overrides `parseProjectProperties()` with enhanced error handling
-- **System Property**: Sets `fess.webapp.plugin=true` during initialization
-
-#### Configuration
-
-- **DI Configuration**: `src/main/resources/fess+systemHelper.xml`
-- **Component Registration**: Maps UI component names to JSP template files
-- **Test Configuration**: `src/test/resources/test_app.xml`
-
-### Building and Testing
-
-```bash
-# Compile the project
-mvn clean compile
-
-# Run tests
-mvn test
-
-# Create package
-mvn clean package
-
-# Format code
-mvn formatter:format
-
-# Check license headers
-mvn license:check
-
-# Generate documentation
-mvn javadoc:javadoc
-```
-
-### Creating Custom Templates
-
-1. Extend the `CustomSystemHelper` class or create your own helper
-2. Register your JSP templates in the DI configuration file
-3. Ensure your plugin JAR includes the manifest entry: `Fess-WebAppJar=true`
-
-## Configuration
-
-The plugin uses LastaDi dependency injection framework. Template mappings are configured in `fess+systemHelper.xml`:
-
-```xml
-<component name="systemHelper" class="org.codelibs.fess.plugin.webapp.helper.CustomSystemHelper">
-    <postConstruct name="addDesignJspFileName">
-        <arg>"index"</arg>
-        <arg>"index.jsp"</arg>
-    </postConstruct>
-    <!-- Additional template mappings... -->
-</component>
-```
+1. Add your own class (a helper, action, service, etc.) under
+   `org.codelibs.fess.webapp.example`.
+2. To **add** it, register it in `app++.xml` with a unique component name that
+   does not collide with a Fess core component. To **override** a core component,
+   ship a `<baseDicon>+<componentName>.xml` file and subclass the original.
+3. Use `@PostConstruct` for initialization and `ComponentUtil.getXxx()` /
+   `@Resource` to reuse core components instead of copying them.
+4. Add a test that retrieves your component from the DI container and asserts its
+   behavior.
 
 ## Contributing
 
@@ -169,25 +205,11 @@ The plugin uses LastaDi dependency injection framework. Template mappings are co
 4. Push to the branch (`git push origin feature/your-feature`)
 5. Create a Pull Request
 
-### Development Guidelines
-
-- Follow the existing code style and conventions
-- Add appropriate test cases for new functionality
-- Ensure all tests pass before submitting
-- Update documentation as needed
-
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## Support
-
-- **Documentation**: [Fess Documentation](https://fess.codelibs.org/)
-- **Plugin Guide**: [Plugin Installation Guide](https://fess.codelibs.org/admin/plugin-guide.html)
-- **Issues**: [GitHub Issues](https://github.com/codelibs/fess-webapp-example/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codelibs/fess-webapp-example/discussions)
-
-## Related Projects
+## Related projects
 
 - [Fess](https://github.com/codelibs/fess) - The main Fess search server
 - [LastaFlute](https://github.com/lastaflute/lastaflute) - Web framework used by Fess
