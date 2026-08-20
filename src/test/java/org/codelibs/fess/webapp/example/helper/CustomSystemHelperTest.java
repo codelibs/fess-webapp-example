@@ -70,6 +70,29 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
             public String[] getSupportedLanguagesAsArray() {
                 return new String[] { "ja" };
             }
+
+            // SystemHelper#init() validates the four search-role prefixes, and a
+            // SimpleImpl built here has no properties behind it to read them from.
+            // Return the values fess_config.properties ships so the check passes.
+            @Override
+            public String getRoleSearchUserPrefix() {
+                return "1";
+            }
+
+            @Override
+            public String getRoleSearchGroupPrefix() {
+                return "2";
+            }
+
+            @Override
+            public String getRoleSearchRolePrefix() {
+                return "R";
+            }
+
+            @Override
+            public String getRoleSearchDeniedPrefix() {
+                return "D";
+            }
         });
         super.setUp(testInfo);
     }
