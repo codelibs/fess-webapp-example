@@ -73,22 +73,16 @@ a parse failure and set a `fess.webapp.plugin` marker property.
 <!-- src/main/resources/fess+systemHelper.xml -->
 <component name="systemHelper"
     class="org.codelibs.fess.webapp.example.helper.CustomSystemHelper">
-    <postConstruct name="addDesignJspFileName">
-        <arg>"index"</arg>
-        <arg>"index.jsp"</arg>
-    </postConstruct>
-    <!-- ...the rest of Fess core's design-JSP mappings... -->
 </component>
 ```
 
 > **Maintenance cost (read before overriding):** because a redefine replaces the
-> *whole* definition, the override must repeat **every** `postConstruct` the core
-> `systemHelper` performs &mdash; the full set of design-JSP name mappings. These
-> are copied verbatim from Fess core's `fess.xml`, and the referenced `*.jsp`
-> files are provided by Fess itself (this plugin ships none of them). You must
-> keep that list in sync with each Fess release, or design pages (e.g.
-> `chat` / `busy` / `newpassword`) will stop resolving. This is exactly why
-> Pattern 1 is preferred whenever you do not truly need to replace core behavior.
+> *whole* definition, the override must repeat **every** property and
+> `postConstruct` that Fess core declares for the component in `fess.xml`. Fess
+> 15.9 declares none for `systemHelper`; earlier releases registered the
+> design-JSP pages here, which 15.9 removed. Check `fess.xml` for each Fess
+> release you support. This is exactly why Pattern 1 is preferred whenever you do
+> not truly need to replace core behavior.
 
 ## The `Fess-WebAppJar` manifest
 
@@ -114,7 +108,7 @@ application's classloader. This is set in [`pom.xml`](pom.xml) via the
 
 - Java 21 or later
 - Maven 3.8 or later
-- Fess 15.8 or later
+- Fess 15.9 or later
 
 ## Project structure
 

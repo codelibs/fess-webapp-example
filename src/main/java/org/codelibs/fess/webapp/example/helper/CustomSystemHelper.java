@@ -32,7 +32,7 @@ import org.codelibs.fess.helper.SystemHelper;
  * {@code fess+systemHelper.xml}) tells LastaDi to register THIS class in place
  * of the core {@link SystemHelper}. Because a redefine REPLACES the whole
  * component definition, the override XML must repeat every {@code postConstruct}
- * the core definition performs (the design-JSP name mappings) &mdash; see
+ * the core definition performs (Fess 15.9 declares none) &mdash; see
  * {@code fess+systemHelper.xml} for the details and the maintenance cost this
  * implies.
  * </p>
