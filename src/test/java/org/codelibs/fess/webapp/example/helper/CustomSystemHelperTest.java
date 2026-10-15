@@ -93,6 +93,13 @@ public class CustomSystemHelperTest extends UnitWebappTestCase {
             public String getRoleSearchDeniedPrefix() {
                 return "D";
             }
+
+            // SystemHelper#init() asks whether Lasta Di runs in a development mode to decide
+            // how to log requests. "cool" is the production value fess_env.properties ships.
+            @Override
+            public String getLastaDiSmartDeployMode() {
+                return "cool";
+            }
         });
         super.setUp(testInfo);
     }
